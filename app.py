@@ -18,28 +18,6 @@ from flask import (
 app = Flask(__name__, static_folder=".", static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", secrets.token_hex(32))
 app.permanent_session_lifetime = timedelta(hours=8)
-def adjust_inventory(product_id, amount):
-    try:
-        # 1. Open from the database folder
-        file_path = 'database/products.json'
-        with open(file_path, 'r') as file:
-            products = json.load(file)
-
-        # 2. Find the product and do the math
-        for item in products:
-            if item.get('id') == product_id:
-                # Ensure we are working with numbers
-                current_stock = int(item.get('stock', 0))
-                item['stock'] = current_stock + amount
-                break
-
-        # 3. Save the update back to the database folder
-        with open(file_path, 'w') as file:
-            json.dump(products, file, indent=4)
-        return True
-    except Exception as e:
-        print(f"Inventory Error: {e}")
-        return False
 
 # Yoco — paste your live secret key here or set YOCO_SECRET_KEY env var
 YOCO_SECRET_KEY  = os.environ.get("YOCO_SECRET_KEY", "sk_test_59b83b630e7DVy2672f4c80a277a")
@@ -153,16 +131,22 @@ def payment_success():
     for o in orders:
         if o.get("order_ref") == order_ref:
             o["payment_status"] = "verified"
-            o["status"]         = "processing"
+            o["status"] = "processing"
             logging.info(f"Payment SUCCESS: {order_ref}")
             break
     _write("orders", orders)
+
+    # FIX: Decrease stock for the correct ordered product
     products = _read("products")
-    for p in products:
-            if p.get("id") == 1:
-                if p.get("stock", 0) > 0:
-                    p["stock"] -= 1
+    order_obj = next((o for o in _read("orders") if o.get("order_ref") == order_ref), None)
+    if order_obj:
+        ordered_pid = order_obj.get("product_id")
+        for p in products:
+            if p.get("id") == ordered_pid and p.get("stock", 0) > 0:
+                p["stock"] -= 1
+                break
     _write("products", products)
+
     return f"""<!DOCTYPE html><html><head><meta charset='UTF-8'>
     <title>Payment Successful — Vantage</title>
     <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400&family=Raleway:wght@300;400&display=swap' rel='stylesheet'>
@@ -270,23 +254,23 @@ def manage_product(pid):
     return jsonify(prod)
 
 # ─── YOCO PAYMENT ────────────────────────────────────────────────────────
-# --- YOCO CHECKOUT ENGINE ---
 @app.route('/api/pay/create-checkout', methods=['POST'])
 def create_yoco_checkout():
     try:
         data = request.get_json()
         pid = data.get('product_id')
-        
+
         products = _read("products")
         product = next((p for p in products if p['id'] == pid), None)
         if not product:
             return jsonify({"error": "Product not found"}), 404
 
         order_ref = f"VTG-{secrets.token_hex(3).upper()}"
-        
+
         new_order = {
             "id": int(time.time()),
             "order_ref": order_ref,
+            "product_id": pid,  # FIX: save product_id so stock can be updated on success
             "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "customer_name": data.get('customer_name'),
             "customer_phone": data.get('customer_phone'),
@@ -294,7 +278,7 @@ def create_yoco_checkout():
             "total": product['price'],
             "payment_status": "pending"
         }
-        
+
         _write("orders", _read("orders") + [new_order])
 
         payload = {
@@ -303,14 +287,14 @@ def create_yoco_checkout():
             "cancelUrl": f"{request.host_url}",
             "successUrl": f"{request.host_url}payment/success?ref={order_ref}"
         }
-        
+
         headers = {
             "Authorization": f"Bearer {YOCO_SECRET_KEY}",
             "Content-Type": "application/json"
         }
 
         r = requests.post("https://payments.yoco.com/api/checkouts", json=payload, headers=headers)
-        
+
         if r.status_code in (200, 201):
             return jsonify({"redirectUrl": r.json()['redirectUrl']})
         else:
@@ -333,7 +317,7 @@ def update_order_status(oid):
     order  = next((o for o in orders if o["id"] == oid), None)
     if not order: return jsonify({"error":"Not found"}), 404
     data   = request.get_json(silent=True) or {}
-    order["status"] = data.get("status", order["status"])
+    order["status"] = data.get("status", order.get("status", "pending"))
     _write("orders", orders)
     return jsonify(order)
 
