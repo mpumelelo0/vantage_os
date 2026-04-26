@@ -1,0 +1,8 @@
+{
+  "bank_name": "FNB",
+  "account_holder": "Vantage",
+  "account_number": "",
+  "branch_code": "",
+  "yoco_public_key": "",
+  "store_url": "http://localhost:5000"
+}

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vantage OS — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Montserrat:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#050505;--surface:#0d0d0d;--border:rgba(255,255,255,0.08);
+  --text:#e8e4dc;--muted:#6a6660;--gold:#9a7f52;--gold-hi:#c4a46b;
+  --crimson:#8b1a1a;--serif:'Cormorant Garamond',serif;--sans:'Montserrat',sans-serif;
+}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:300;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;}
+.wrap{width:100%;max-width:380px;padding:24px}
+.logo{font-family:var(--serif);font-size:42px;font-weight:300;letter-spacing:10px;
+  color:var(--gold-hi);text-align:center;margin-bottom:8px}
+.sub{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);
+  text-align:center;margin-bottom:48px}
+.field{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.field label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+.field input{background:var(--surface);border:1px solid var(--border);color:var(--text);
+  padding:14px 16px;font-family:var(--sans);font-size:13px;font-weight:300;
+  outline:none;transition:border .3s;width:100%}
+.field input:focus{border-color:var(--gold)}
+.btn{width:100%;padding:16px;background:transparent;border:1px solid var(--gold);
+  color:var(--gold-hi);font-family:var(--sans);font-size:9px;letter-spacing:4px;
+  text-transform:uppercase;cursor:pointer;transition:all .3s;margin-top:8px}
+.btn:hover{background:var(--gold);color:var(--black)}
+.err{font-size:11px;color:var(--crimson);text-align:center;margin-top:16px;
+  min-height:16px;letter-spacing:1px}
+.ornament{width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--gold),transparent);
+  margin:0 auto 32px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ornament"></div>
+  <div class="logo">VANTAGE</div>
+  <div class="sub">Operating System — Secure Access</div>
+  <div class="field">
+    <label>Username</label>
+    <input type="text" id="user" autocomplete="username" placeholder="Enter username">
+  </div>
+  <div class="field">
+    <label>Password</label>
+    <input type="password" id="pass" autocomplete="current-password" placeholder="••••••••••••"
+      onkeydown="if(event.key==='Enter')login()">
+  </div>
+  <button class="btn" onclick="login()">Access System</button>
+  <div class="err" id="err"></div>
+</div>
+<script>
+async function login(){
+  const user=document.getElementById('user').value.trim();
+  const pass=document.getElementById('pass').value;
+  const err=document.getElementById('err');
+  err.textContent='';
+  if(!user||!pass){err.textContent='Enter credentials';return;}
+  try{
+    const r=await fetch('/api/auth/login',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({username:user,password:pass})
+    });
+    const d=await r.json();
+    if(r.ok&&d.success){window.location.href='/admin';}
+    else{err.textContent=d.error||'Access denied';}
+  }catch(e){err.textContent='Connection error';}
+}
+</script>
+</body>
+</html>

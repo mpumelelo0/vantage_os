@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "name": "Urban Sling Bag",
+    "category": "Bags",
+    "price": 450,
+    "description": "Designed for those who move. Sleek weather-resistant matte black finish with adjustable tactical straps.",
+    "stock": 20,
+    "is_new": false,
+    "image_path": ""
+  },
+  {
+    "id": 2,
+    "name": "Essential Oversized Hoodie",
+    "category": "Outerwear",
+    "price": 850,
+    "description": "Premium heavyweight cotton blend, signature boxy fit, double-lined hood. Built to last.",
+    "stock": 20,
+    "is_new": false,
+    "image_path": ""
+  },
+  {
+    "id": 3,
+    "name": "Signature Boxy Tee \u2014 Black",
+    "category": "Tops",
+    "price": 400,
+    "description": "High-density premium cotton, dropped shoulders, structured oversized fit. Minimalist branding.",
+    "stock": 20,
+    "is_new": false,
+    "image_path": ""
+  },
+  {
+    "id": 4,
+    "name": "Signature Boxy Tee \u2014 Arctic",
+    "category": "Tops",
+    "price": 400,
+    "description": "Crisp arctic white edition. Same premium heavyweight cotton. Breathable, durable.",
+    "stock": 20,
+    "is_new": true,
+    "image_path": ""
+  },
+  {
+    "id": 5,
+    "name": "Vantage Signature Beanie",
+    "category": "Accessories",
+    "price": 250,
+    "description": "Heavyweight ribbed knit in deep void black. One size.",
+    "stock": 20,
+    "is_new": true,
+    "image_path": ""
+  }
+]
