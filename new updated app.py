@@ -135,19 +135,18 @@ def payment_success():
             logging.info(f"Payment SUCCESS: {order_ref}")
             break
     _write("orders", orders)
-
     # FIX: Decrease stock for the correct ordered product
     products = _read("products")
     order_obj = next((o for o in _read("orders") if o.get("order_ref") == order_ref), None)
     if order_obj:
-        ordered_pid = order_obj.get("product_id")
-        for p in products:
-            if p.get("id") == ordered_pid and p.get("stock", 0) > 0:
-                p["stock"] -= 1
-                break
+            ordered_pid = order_obj.get("product_id")
+            for p in products:
+                if p.get("id") == ordered_pid and p.get("stock", 0) > 0:
+                    p["stock"] -= 1
+                    break                                    
     _write("products", products)
-
     return f"""<!DOCTYPE html><html><head><meta charset='UTF-8'>
+
     <title>Payment Successful — Vantage</title>
     <link href='https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400&family=Raleway:wght@300;400&display=swap' rel='stylesheet'>
     <style>*{{margin:0;padding:0;box-sizing:border-box}}body{{background:#020202;color:#d9d4ca;font-family:'Raleway',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:18px;padding:24px;text-align:center}}h1{{font-family:'Playfair Display',serif;font-size:clamp(32px,6vw,72px);color:#ede0c8;letter-spacing:8px}}.sub{{font-size:8px;letter-spacing:5px;text-transform:uppercase;color:#b5903f}}.ref{{font-size:10px;letter-spacing:3px;color:#74706b;margin-top:8px}}.btn{{margin-top:28px;padding:13px 36px;background:#b5903f;border:none;color:#020202;font-size:7px;letter-spacing:4px;text-transform:uppercase;cursor:pointer;text-decoration:none;display:inline-block;font-family:'Raleway',sans-serif}}</style>
